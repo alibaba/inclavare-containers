@@ -9,7 +9,8 @@
 #include <enclave-tls/err.h>
 #include "internal/core.h"
 #include "internal/tls_wrapper.h"
-#include "internal/enclave_quote.h"
+#include "internal/attester.h"
+#include "internal/verifier.h"
 #include "internal/crypto_wrapper.h"
 #ifdef SGX
 #include "etls_t.h"
@@ -49,10 +50,16 @@ void __attribute__((constructor)) libenclave_tls_init(void)
 		etls_exit();
 	}
 
-	/* Load all enclave quote instances */
-	err = etls_enclave_quote_load_all();
+	/* Load all enclave attester instances */
+	err = etls_enclave_attester_load_all();
 	if (err != ENCLAVE_TLS_ERR_NONE) {
-		ETLS_FATAL("failed to load any enclave quote %#x\n", err);
+		ETLS_FATAL("failed to load any enclave attester %#x\n", err);
+		etls_exit();
+	}
+	/* Load all enclave verifier instances */
+	err = etls_enclave_verifier_load_all();
+	if (err != ENCLAVE_TLS_ERR_NONE) {
+		ETLS_FATAL("failed to load any enclave verifier %#x\n", err);
 		etls_exit();
 	}
 

@@ -59,7 +59,7 @@ if(SGX)
     set(SGX_COMMON_CFLAGS "${SGX_COMMON_FLAGS} -Wjump-misses-init -Wstrict-prototypes -Wunsuffixed-float-constants")
     set(SGX_COMMON_CXXFLAGS "${SGX_COMMON_FLAGS} -Wnon-virtual-dtor -std=c++11")
     
-    set(ENCLAVE_INCLUDES "${SGX_INCLUDE}" "${SGX_TLIBC_INCLUDE}" "${SGX_LIBCXX_INCLUDE}")
+    set(ENCLAVE_INCLUDES "${SGX_INCLUDE}" "${SGX_TLIBC_INCLUDE}" "${SGX_LIBCXX_INCLUDE}" "/usr/include")
     set(ENCLAVE_C_FLAGS "${CMAKE_C_FLAGS} ${SGX_COMMON_CFLAGS} ${ENCLAVE_COMMON_FLAGS}")
     set(ENCLAVE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SGX_COMMON_CXXFLAGS} ${ENCLAVE_COMMON_FLAGS} -nostdinc++")
     

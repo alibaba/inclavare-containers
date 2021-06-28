@@ -1,12 +1,13 @@
 enclave {
 	include "enclave-tls/err.h"
-	include "enclave-tls/enclave_quote.h"
+        include "enclave-tls/verifier.h"
+
 	include "enclave-tls/cert.h"
 
 	from "sgx_dummy.edl" import *;
 
 	untrusted {
-		enclave_quote_err_t ocall_la_verify_evidence([user_check] enclave_quote_ctx_t *ctx,
+		enclave_verifier_err_t ocall_la_verify_evidence([user_check] enclave_verifier_ctx_t *ctx,
                                                              [in, size=evidence_len] attestation_evidence_t *evidence,
                                                              uint32_t evidence_len,
                                                              [in, size=hash_len] uint8_t *hash,

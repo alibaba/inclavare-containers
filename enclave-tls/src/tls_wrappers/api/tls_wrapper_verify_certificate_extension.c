@@ -8,7 +8,8 @@
 #include <enclave-tls/err.h>
 
 #include "internal/tls_wrapper.h"
-#include "internal/enclave_quote.h"
+#include "internal/attester.h"
+#include "internal/verifier.h"
 
 tls_wrapper_err_t tls_wrapper_verify_certificate_extension(tls_wrapper_ctx_t *tls_ctx,
 							   attestation_evidence_t *evidence,
@@ -36,9 +37,9 @@ tls_wrapper_err_t tls_wrapper_verify_certificate_extension(tls_wrapper_ctx_t *tl
 		}
 	}
 
-	enclave_quote_err_t err = tls_ctx->etls_handle->verifier->opts->verify_evidence(
+	enclave_verifier_err_t err = tls_ctx->etls_handle->verifier->opts->verify_evidence(
 		tls_ctx->etls_handle->verifier, evidence, hash, hash_len);
-	if (err != ENCLAVE_QUOTE_ERR_NONE) {
+	if (err != ENCLAVE_VERIFIER_ERR_NONE) {
 		ETLS_ERR("failed to verify evidence %#x\n", err);
 		return -TLS_WRAPPER_ERR_INVALID;
 	}

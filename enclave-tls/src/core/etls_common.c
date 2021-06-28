@@ -17,10 +17,13 @@
 
 extern void libcrypto_wrapper_nullcrypto_init(void);
 extern void libcrypto_wrapper_wolfcrypt_init(void);
-extern void libenclave_quote_nullquote_init(void);
-extern void libenclave_quote_sgx_ecdsa_init(void);
-extern void libenclave_quote_sgx_ecdsa_qve_init(void);
-extern void libenclave_quote_sgx_la_init(void);
+extern void libattester_null_init(void);
+extern void libverifier_null_init(void);
+extern void libattester_sgx_ecdsa_init(void);
+extern void libverifier_sgx_ecdsa_init(void);
+extern void libverifier_sgx_ecdsa_qve_init(void);
+extern void libattester_sgx_la_init(void);
+extern void libverifier_sgx_la_init(void);
 extern void libtls_wrapper_nulltls_init(void);
 extern void libtls_wrapper_wolfssl_init(void);
 #endif
@@ -97,14 +100,20 @@ enclave_tls_err_t etls_instance_init(const char *name,
 		libcrypto_wrapper_nullcrypto_init();
 	else if (!strcmp(name, "wolfcrypt"))
 		libcrypto_wrapper_wolfcrypt_init();
-	else if (!strcmp(name, "nullquote"))
-		libenclave_quote_nullquote_init();
-	else if (!strcmp(name, "sgx_ecdsa"))
-		libenclave_quote_sgx_ecdsa_init();
+	else if (!strcmp(name, "nullattester"))
+		libattester_null_init();
+	else if (!strcmp(name, "nullverifier"))
+		libverifier_null_init();
+	else if (!strcmp(name, "sgx_ecdsa")) {
+		libattester_sgx_ecdsa_init();
+		libverifier_sgx_ecdsa_init();
+        }
 	else if (!strcmp(name, "sgx_ecdsa_qve"))
-		libenclave_quote_sgx_ecdsa_qve_init();
-	else if (!strcmp(name, "sgx_la"))
-		libenclave_quote_sgx_la_init();
+		libverifier_sgx_ecdsa_qve_init();
+	else if (!strcmp(name, "sgx_la")) {
+                libattester_sgx_la_init();
+		libverifier_sgx_la_init();
+        }
 	else if (!strcmp(name, "nulltls"))
 		libtls_wrapper_nulltls_init();
 	else if (!strcmp(name, "wolfssl"))

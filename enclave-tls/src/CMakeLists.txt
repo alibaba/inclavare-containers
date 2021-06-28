@@ -1,7 +1,8 @@
 # Add third party and instance directory
 add_subdirectory(external)
 add_subdirectory(crypto_wrappers)
-add_subdirectory(enclave_quotes)
+add_subdirectory(attesters)
+add_subdirectory(verifiers)
 add_subdirectory(tls_wrappers)
 if(SGX)
     add_subdirectory(sgx)
@@ -39,11 +40,16 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/tls_wrappers/internal/etls_tls_wrapper_select.c
     ${CMAKE_CURRENT_SOURCE_DIR}/tls_wrappers/internal/tls_wrapper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/tls_wrappers/api/tls_wrapper_verify_certificate_extension.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/enclave_quotes/api/enclave_quote_register.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/enclave_quotes/internal/enclave_quote.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/enclave_quotes/internal/etls_enclave_quote_load_all.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/enclave_quotes/internal/etls_enclave_quote_load_single.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/enclave_quotes/internal/etls_enclave_quote_select.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/api/enclave_attester_register.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/enclave_attester.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/etls_enclave_attester_load_all.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/etls_enclave_attester_load_single.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/attesters/internal/etls_enclave_attester_select.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/api/enclave_verifier_register.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/enclave_verifier.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/etls_enclave_verifier_load_all.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/etls_enclave_verifier_load_single.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/verifiers/internal/etls_enclave_verifier_select.c
     )
 if(SGX)
     list(APPEND SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sgx/trust/etls_syscalls.c
@@ -63,10 +69,13 @@ if(SGX)
                             crypto_wrapper_wolfcrypt
                             tls_wrapper_nulltls
                             tls_wrapper_wolfssl
-                            enclave_quote_nullquote
-                            enclave_quote_sgx_ecdsa
-                            enclave_quote_sgx_ecdsa_qve
-                            enclave_quote_sgx_la
+                            attester_nullattester
+                            attester_sgx_ecdsa
+                            attester_sgx_la
+                            verifier_nullverifier
+                            verifier_sgx_ecdsa
+                            verifier_sgx_ecdsa_qve
+                            verifier_sgx_la
                             )
 endif()
 
@@ -88,7 +97,8 @@ install(TARGETS ${ETLS_LIB}
 set(ETLS_INCLUDE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/api.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/cert.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/crypto_wrapper.h
-                       ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/enclave_quote.h
+                       ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/attester.h
+                       ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/verifier.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/err.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/log.h
                        ${CMAKE_CURRENT_SOURCE_DIR}/include/enclave-tls/sgx.h

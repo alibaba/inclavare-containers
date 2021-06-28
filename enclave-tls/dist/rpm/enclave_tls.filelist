@@ -6,4 +6,5 @@
 /opt/enclave-tls/lib/libwolfssl*
 /opt/enclave-tls/lib/tls-wrappers/libtls_wrapper*.so*
 /opt/enclave-tls/lib/crypto-wrappers/libcrypto_wrapper*.so*
-/opt/enclave-tls/lib/enclave-quotes/libenclave_quote*.so*
+/opt/enclave-tls/lib/attesters/libattester*.so*
+/opt/enclave-tls/lib/verifiers/libverifier*.so*

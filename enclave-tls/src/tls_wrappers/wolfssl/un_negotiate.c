@@ -221,7 +221,7 @@ int verify_certificate(int preverify, WOLFSSL_X509_STORE_CTX *store)
 			  &ext_data_len) == 1)
 		strncpy(evidence.type, "sgx_la", sizeof(evidence.type));
 	else
-		strncpy(evidence.type, "nullquote", sizeof(evidence.type));
+		strncpy(evidence.type, "nullverifier", sizeof(evidence.type));
 
 	int rc = extract_cert_extensions(crt.extensions, crt.extensionsSz, &evidence);
 	if (rc != 1) {

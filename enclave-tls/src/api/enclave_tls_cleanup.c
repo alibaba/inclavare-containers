@@ -8,7 +8,8 @@
 #include <enclave-tls/log.h>
 
 #include "internal/core.h"
-#include "internal/enclave_quote.h"
+#include "internal/attester.h"
+#include "internal/verifier.h"
 #include "internal/tls_wrapper.h"
 
 enclave_tls_err_t enclave_tls_cleanup(enclave_tls_handle handle)
@@ -31,14 +32,14 @@ enclave_tls_err_t enclave_tls_cleanup(enclave_tls_handle handle)
 	}
 
 	err = handle->attester->opts->cleanup(handle->attester);
-	if (err != ENCLAVE_QUOTE_ERR_NONE) {
+	if (err != ENCLAVE_ATTESTER_ERR_NONE) {
 		ETLS_DEBUG("failed to clean up attester %#x\n", err);
 		return err;
 	}
 
 	if (handle->attester != handle->verifier) {
 		err = handle->verifier->opts->cleanup(handle->verifier);
-		if (err != ENCLAVE_QUOTE_ERR_NONE) {
+		if (err != ENCLAVE_VERIFIER_ERR_NONE) {
 			ETLS_DEBUG("failed to clean up verifier %#x\n", err);
 			return err;
 		}

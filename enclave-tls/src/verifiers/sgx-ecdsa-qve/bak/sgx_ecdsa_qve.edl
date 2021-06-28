@@ -1,0 +1,6 @@
+enclave {
+        trusted {
+		/* In edl, it must have a root trust function */
+		public void sgx_ecdsa_qve_verifier_dummy(void);
+        };
+};

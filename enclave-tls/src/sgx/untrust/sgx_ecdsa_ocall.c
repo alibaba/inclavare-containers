@@ -4,7 +4,8 @@
  */
 #include <string.h>
 #include <enclave-tls/log.h>
-#include <enclave-tls/enclave_quote.h>
+#include <enclave-tls/attester.h>
+#include <enclave-tls/verifier.h>
 #include <sgx_urts.h>
 #include <sgx_quote.h>
 #include <sgx_quote_3.h>
@@ -35,7 +36,7 @@ quote3_error_t ocall_qe_get_quote_size(uint32_t *quote_size)
 		return SGX_ECDSA_ERR_CODE((int)qe3_ret);
 	}
 
-	return ENCLAVE_QUOTE_ERR_NONE;
+	return ENCLAVE_ATTESTER_ERR_NONE;
 }
 
 quote3_error_t ocall_qe_get_quote(sgx_report_t *report,
@@ -50,10 +51,10 @@ quote3_error_t ocall_qe_get_quote(sgx_report_t *report,
 		return SGX_ECDSA_ERR_CODE((int)qe3_ret);
 	}
 
-	return ENCLAVE_QUOTE_ERR_NONE;
+	return ENCLAVE_ATTESTER_ERR_NONE;
 }
 
-enclave_quote_err_t ocall_ecdsa_verify_evidence(enclave_quote_ctx_t *ctx,
+enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
                                                 sgx_enclave_id_t enclave_id,
                                                 const char *name,
                                                 attestation_evidence_t *evidence,
@@ -61,7 +62,7 @@ enclave_quote_err_t ocall_ecdsa_verify_evidence(enclave_quote_ctx_t *ctx,
                                                 uint8_t *hash,
                                                 uint32_t hash_len)
 {
-	enclave_quote_err_t err = -ENCLAVE_QUOTE_ERR_UNKNOWN;
+	enclave_verifier_err_t err = -ENCLAVE_VERIFIER_ERR_UNKNOWN;
 	uint32_t supplemental_data_size = 0;
 	uint8_t *p_supplemental_data = NULL;
 	sgx_ql_qv_result_t quote_verification_result = SGX_QL_QV_RESULT_UNSPECIFIED;
@@ -77,7 +78,7 @@ enclave_quote_err_t ocall_ecdsa_verify_evidence(enclave_quote_ctx_t *ctx,
 	sgx_quote3_t *pquote = (sgx_quote3_t *)malloc(8192);
 	if (!pquote) {
 		printf("failed to malloc sgx quote3 data space.\n");
-		return -ENCLAVE_QUOTE_ERR_NO_MEM;
+		return -ENCLAVE_VERIFIER_ERR_NO_MEM;
 	}
 
 	memcpy(pquote, evidence->ecdsa.quote, evidence->ecdsa.quote_len);
@@ -89,7 +90,7 @@ enclave_quote_err_t ocall_ecdsa_verify_evidence(enclave_quote_ctx_t *ctx,
 	/* First verify the hash value */
 	if (memcmp(hash, pquote->report_body.report_data.d, hash_len) != 0) {
 		printf("unmatched hash value in evidence.\n");
-		err = -ENCLAVE_QUOTE_ERR_INVALID;
+		err = -ENCLAVE_VERIFIER_ERR_INVALID;
 		goto errout;
 	}
 
@@ -133,7 +134,7 @@ enclave_quote_err_t ocall_ecdsa_verify_evidence(enclave_quote_ctx_t *ctx,
 		p_supplemental_data = (uint8_t *)malloc(supplemental_data_size);
 		if (!p_supplemental_data) {
 			printf("failed to malloc supplemental data space.\n");
-			err = -ENCLAVE_QUOTE_ERR_NO_MEM;
+			err = -ENCLAVE_VERIFIER_ERR_NO_MEM;
 			goto errout;
 		}
 	} else {
@@ -173,7 +174,7 @@ enclave_quote_err_t ocall_ecdsa_verify_evidence(enclave_quote_ctx_t *ctx,
 			if (memcmp(qve_report_info->nonce.rand, rand_nonce, sizeof(rand_nonce)) !=
 			    0) {
 				printf("nonce during SGX quote verification has been tampered with.\n");
-				err = -ENCLAVE_QUOTE_ERR_INVALID;
+				err = -ENCLAVE_VERIFIER_ERR_INVALID;
 				goto errret;
 			}
 		}
@@ -183,7 +184,7 @@ enclave_quote_err_t ocall_ecdsa_verify_evidence(enclave_quote_ctx_t *ctx,
 	switch (quote_verification_result) {
 	case SGX_QL_QV_RESULT_OK:
 		printf("verification completed successfully.\n");
-		err = ENCLAVE_QUOTE_ERR_NONE;
+		err = ENCLAVE_VERIFIER_ERR_NONE;
 		break;
 	case SGX_QL_QV_RESULT_CONFIG_NEEDED:
 	case SGX_QL_QV_RESULT_OUT_OF_DATE:

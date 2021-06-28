@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <enclave-tls/compilation.h>
 #include <enclave-tls/err.h>
 #include <enclave-tls/api.h>
 #include <enclave-tls/cert.h>

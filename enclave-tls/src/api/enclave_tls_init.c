@@ -10,7 +10,8 @@
 #include "internal/core.h"
 #include "internal/crypto_wrapper.h"
 #include "internal/tls_wrapper.h"
-#include "internal/enclave_quote.h"
+#include "internal/attester.h"
+#include "internal/verifier.h"
 
 enclave_tls_err_t enclave_tls_init(const enclave_tls_conf_t *conf, enclave_tls_handle *handle)
 {

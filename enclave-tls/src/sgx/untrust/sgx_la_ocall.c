@@ -5,13 +5,14 @@
 
 #include <string.h>
 #include <enclave-tls/log.h>
-#include <enclave-tls/enclave_quote.h>
+#include <enclave-tls/attester.h>
+#include <enclave-tls/verifier.h>
 #include "sgx_error.h"
 #include "sgx_la.h"
 #include "sgx_quote_3.h"
 #include "sgx_dcap_ql_wrapper.h"
 
-enclave_quote_err_t ocall_la_verify_evidence(enclave_quote_ctx_t *ctx,
+enclave_verifier_err_t ocall_la_verify_evidence(enclave_verifier_ctx_t *ctx,
                                              attestation_evidence_t *evidence,
                                              uint32_t evidence_len,
                                              uint8_t *hash,
@@ -29,7 +30,7 @@ enclave_quote_err_t ocall_la_verify_evidence(enclave_quote_ctx_t *ctx,
 
 	if (memcmp(hash, lreport->body.report_data.d, hash_len) != 0) {
 		printf("Unmatched hash value in evidence\n");
-		return -ENCLAVE_QUOTE_ERR_INVALID;
+		return -ENCLAVE_VERIFIER_ERR_INVALID;
 	}
 	
 	qe3_ret = sgx_qe_get_target_info(&qe_target_info);
@@ -50,5 +51,5 @@ enclave_quote_err_t ocall_la_verify_evidence(enclave_quote_ctx_t *ctx,
 		return SGX_LA_ERR_CODE((int)qe3_ret);
 	}
 	
-	return ENCLAVE_QUOTE_ERR_NONE;
+	return ENCLAVE_VERIFIER_ERR_NONE;
 }

@@ -1,0 +1,11 @@
+enclave {
+	include "sgx_report.h"
+	trusted {
+		public sgx_status_t ecall_generate_evidence([user_check] uint8_t *hash,
+							    [out] sgx_report_t *report);
+	};
+	untrusted {
+		/* define OCALLs here. */
+		void ocall_ratls_get_target_info([out] sgx_target_info_t *qe_target_info);
+	};
+};

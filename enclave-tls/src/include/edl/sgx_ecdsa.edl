@@ -1,7 +1,7 @@
 enclave {
 	include "api.h"
 	include "cert.h"
-	include "enclave_quote.h"
+        include "enclave-tls/verifier.h"
 	include "err.h"
 	include "sgx_report.h"
 	include "sgx_quote_3.h"
@@ -20,7 +20,7 @@ enclave {
 		quote3_error_t ocall_qe_get_quote([in]sgx_report_t *report, uint32_t quote_size,
                                                 [out, size=quote_size] uint8_t *quote);
 
-		enclave_quote_err_t ocall_ecdsa_verify_evidence([user_check] enclave_quote_ctx_t *ctx,
+		enclave_verifier_err_t ocall_ecdsa_verify_evidence([user_check] enclave_verifier_ctx_t *ctx,
                                                                 sgx_enclave_id_t enclave_id,
                                                                 [in, string] const char *name,
                                                                 [in, size=evidence_len] attestation_evidence_t *evidence,

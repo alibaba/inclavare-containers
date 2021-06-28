@@ -6,8 +6,9 @@ set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../../include
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/enclave-tls
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/internal
                  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/edl
-                 ${CMAKE_CURRENT_SOURCE_DIR}/../../enclave_quotes/sgx-ecdsa
-                 ${CMAKE_CURRENT_SOURCE_DIR}/../../enclave_quotes/sgx-la
+                 ${CMAKE_CURRENT_SOURCE_DIR}/../../verifiers/sgx-ecdsa
+                 ${CMAKE_CURRENT_SOURCE_DIR}/../../verifiers/sgx-ecdsa-qve
+                 ${CMAKE_CURRENT_SOURCE_DIR}/../../verifiers/sgx-la
                  )
 include_directories(${INCLUDE_DIRS})
 

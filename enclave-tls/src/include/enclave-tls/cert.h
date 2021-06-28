@@ -34,7 +34,7 @@ typedef struct {
 } la_attestation_evidence_t;
 
 typedef struct {
-	char type[QUOTE_TYPE_NAME_SIZE];
+	char type[ENCLAVE_ATTESTER_TYPE_NAME_SIZE];
 	union {
 		attestation_verification_report_t epid;
 		ecdsa_attestation_evidence_t ecdsa;

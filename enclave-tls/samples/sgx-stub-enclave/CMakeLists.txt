@@ -12,10 +12,14 @@ if(BUILD_SAMPLES)
                      ${CMAKE_BINARY_DIR}/src/crypto_wrappers/wolfcrypt
                      ${CMAKE_BINARY_DIR}/src/tls_wrappers/nulltls
                      ${CMAKE_BINARY_DIR}/src/tls_wrappers/wolfssl
-                     ${CMAKE_BINARY_DIR}/src/enclave_quotes/nullquote
-                     ${CMAKE_BINARY_DIR}/src/enclave_quotes/sgx-ecdsa
-                     ${CMAKE_BINARY_DIR}/src/enclave_quotes/sgx-ecdsa-qve
-                     ${CMAKE_BINARY_DIR}/src/enclave_quotes/sgx-la
+                     ${CMAKE_BINARY_DIR}/src/verifiers/nullverifier
+                     ${CMAKE_BINARY_DIR}/src/verifiers/sgx-ecdsa
+                     ${CMAKE_BINARY_DIR}/src/verifiers/sgx-ecdsa-qve
+                     ${CMAKE_BINARY_DIR}/src/verifiers/sgx-la
+                     ${CMAKE_BINARY_DIR}/src/attesters/nullattester
+                     ${CMAKE_BINARY_DIR}/src/attesters/sgx-ecdsa
+                     ${CMAKE_BINARY_DIR}/src/attesters/sgx-la
+
                      )
 
     set(EDL_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}
@@ -56,10 +60,13 @@ set(DEPEND_TRUSTED_LIBS wolfssl_sgx
                         crypto_wrapper_wolfcrypt
                         tls_wrapper_nulltls
                         tls_wrapper_wolfssl
-                        enclave_quote_nullquote
-                        enclave_quote_sgx_ecdsa
-                        enclave_quote_sgx_ecdsa_qve
-                        enclave_quote_sgx_la
+                        attester_nullattester
+                        attester_sgx_ecdsa
+                        attester_sgx_la
+                        verifier_nullverifier
+                        verifier_sgx_ecdsa
+                        verifier_sgx_la
+                        verifier_sgx_ecdsa_qve
                         enclave_tls
                         )
 

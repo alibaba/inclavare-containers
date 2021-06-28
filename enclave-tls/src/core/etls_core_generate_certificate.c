@@ -6,7 +6,8 @@
 #include <enclave-tls/log.h>
 #include <enclave-tls/err.h>
 #include "internal/core.h"
-#include "internal/enclave_quote.h"
+#include "internal/attester.h"
+#include "internal/verifier.h"
 
 enclave_tls_err_t etls_core_generate_certificate(etls_core_context_t *ctx)
 {
@@ -59,10 +60,10 @@ enclave_tls_err_t etls_core_generate_certificate(etls_core_context_t *ctx)
 			.common_name = "Enclave TLS",
 		},
 	};
-	enclave_quote_err_t q_err;
+	enclave_attester_err_t q_err;
 	q_err = ctx->attester->opts->collect_evidence(ctx->attester, &cert_info.evidence,
 						      ctx->config.cert_algo, hash);
-	if (q_err != ENCLAVE_QUOTE_ERR_NONE)
+	if (q_err != ENCLAVE_ATTESTER_ERR_NONE)
 		return c_err;
 
 	/* Generate the TLS certificate */

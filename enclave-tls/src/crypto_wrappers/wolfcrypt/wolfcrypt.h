@@ -6,6 +6,7 @@
 #ifndef _WOLFCRYPT_H
 #define _WOLFCRYPT_H
 
+#include <enclave-tls/compilation.h>
 #include <wolfssl/options.h>
 #include <wolfssl/wolfcrypt/rsa.h>
 #include <wolfssl/wolfcrypt/asn.h>

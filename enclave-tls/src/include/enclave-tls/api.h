@@ -11,11 +11,12 @@
 #include <stddef.h>
 #include <enclave-tls/err.h>
 
-#define TLS_TYPE_NAME_SIZE	32
-#define QUOTE_TYPE_NAME_SIZE	32
-#define CRYPTO_TYPE_NAME_SIZE	32
-#define ENCLAVE_SGX_SPID_LENGTH 16
-#define SHA256_HASH_SIZE	32
+#define TLS_TYPE_NAME_SIZE	        32
+#define ENCLAVE_ATTESTER_TYPE_NAME_SIZE 32
+#define ENCLAVE_VERIFIER_TYPE_NAME_SIZE 32
+#define CRYPTO_TYPE_NAME_SIZE	        32
+#define ENCLAVE_SGX_SPID_LENGTH         16
+#define SHA256_HASH_SIZE	        32
 
 typedef enum {
 	ENCLAVE_TLS_LOG_LEVEL_DEBUG,
@@ -36,21 +37,13 @@ typedef enum {
 	ENCLAVE_TLS_CERT_ALGO_DEFAULT = ENCLAVE_TLS_CERT_ALGO_RSA_3072_SHA256
 } enclave_tls_cert_algo_t;
 
-/* FIXME: add the type of ecdsa verification */
-// clang-format off
-typedef enum {
-	VERIFICATION_TYPE_QVL,
-	VERIFICATION_TYPE_QEL
-} quote_sgx_ecdsa_verification_type_t;
-// clang-format on
-
 typedef struct {
 	unsigned int api_version;
 	unsigned long flags;
 	enclave_tls_log_level_t log_level;
 	char tls_type[TLS_TYPE_NAME_SIZE];
-	char attester_type[QUOTE_TYPE_NAME_SIZE];
-	char verifier_type[QUOTE_TYPE_NAME_SIZE];
+	char attester_type[ENCLAVE_ATTESTER_TYPE_NAME_SIZE];
+	char verifier_type[ENCLAVE_VERIFIER_TYPE_NAME_SIZE];
 	char crypto_type[CRYPTO_TYPE_NAME_SIZE];
 	enclave_tls_cert_algo_t cert_algo;
 	unsigned long long enclave_id;
@@ -66,7 +59,6 @@ typedef struct {
 	struct {
 		bool valid;
 		uint8_t cert_type;
-		quote_sgx_ecdsa_verification_type_t verification_type;
 	} quote_sgx_ecdsa;
 } enclave_tls_conf_t;
 

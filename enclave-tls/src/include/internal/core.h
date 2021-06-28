@@ -7,7 +7,8 @@
 #define _INTERNAL_CORE_H
 
 #include <sys/types.h>
-#include <enclave-tls/enclave_quote.h>
+#include <enclave-tls/attester.h>
+#include <enclave-tls/verifier.h>
 #include <enclave-tls/tls_wrapper.h>
 #include <enclave-tls/crypto_wrapper.h>
 #include <enclave-tls/api.h>
@@ -18,8 +19,8 @@
 typedef struct etls_core_context_t {
 	enclave_tls_conf_t config;
 	unsigned long flags;
-	enclave_quote_ctx_t *attester;
-	enclave_quote_ctx_t *verifier;
+	enclave_attester_ctx_t *attester;
+	enclave_verifier_ctx_t *verifier;
 	tls_wrapper_ctx_t *tls_wrapper;
 	crypto_wrapper_ctx_t *crypto_wrapper;
 } etls_core_context_t;
