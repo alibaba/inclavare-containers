@@ -33,7 +33,7 @@ extern const uint8_t pck_sign_chain_oid[];
 extern const uint8_t tcb_info_oid[];
 extern const uint8_t tcb_sign_chain_oid[];
 
-extern const size_t ias_oid_len;
+extern const uint32_t ias_oid_len;
 extern const uint8_t la_report_oid[];
 
 static inline void print_wolfssl_err(WOLFSSL *ssl)

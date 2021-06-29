@@ -15,10 +15,10 @@
 static const int rsa_pub_3072_raw_der_len = 398;
 
 #ifdef WOLFSSL_SGX_WRAPPER
-void *memmem(void *start, unsigned int s_len, void *find, unsigned int f_len)
+void *memmem(void *start, uint32_t s_len, void *find, uint32_t f_len)
 {
 	char *p, *q;
-	unsigned int len;
+	uint32_t len;
 	p = start, q = find;
 	len = 0;
 	while ((p - (char *)start + f_len) <= s_len) {
@@ -37,10 +37,10 @@ void *memmem(void *start, unsigned int s_len, void *find, unsigned int f_len)
 /**
  * @return Returns -1 if OID was not found. Otherwise, returns 1;
  */
-int find_oid(const unsigned char *ext, size_t ext_len, const unsigned char *oid, size_t oid_len,
-	     unsigned char **val, size_t *len)
+int find_oid(const uint8_t *ext, uint32_t ext_len, const uint8_t *oid, uint32_t oid_len,
+	     uint8_t **val, uint32_t *len)
 {
-	uint8_t *p = memmem((void *)ext, ext_len, (void *)oid, oid_len);
+	uint8_t *p = memmem((void *)ext, (uint32_t)ext_len, (void *)oid, (uint32_t)oid_len);
 
 	if (!p)
 		return -1;
@@ -59,8 +59,8 @@ int find_oid(const unsigned char *ext, size_t ext_len, const unsigned char *oid,
 	// Now comes the octet string
 	assert(p[i++] == 0x04); // tag for octet string
 	assert(p[i++] == 0x82); // length encoded in two bytes
-	*len = p[i++] << 8;
-	*len += p[i++];
+	*len = (uint32_t)p[i++] << 8;
+	*len += (uint32_t)p[i++];
 	*val = &p[i++];
 
 	return 1;
@@ -69,11 +69,11 @@ int find_oid(const unsigned char *ext, size_t ext_len, const unsigned char *oid,
 /**
  * @return Returns -1 if OID was not found. Otherwise, returns 1;
  */
-int extract_x509_extension(const uint8_t *ext, int ext_len, const uint8_t *oid, size_t oid_len,
+int extract_x509_extension(const uint8_t *ext, uint32_t ext_len, const uint8_t *oid, uint32_t oid_len,
 			   uint8_t *data, uint32_t *data_len, uint32_t data_max_len)
 {
 	uint8_t *ext_data;
-	size_t ext_data_len;
+	uint32_t ext_data_len;
 
 	int rc = find_oid(ext, ext_len, oid, oid_len, &ext_data, &ext_data_len);
 	if (rc == -1 || ext_data == NULL || ext_data_len > data_max_len)
@@ -89,42 +89,42 @@ int extract_x509_extension(const uint8_t *ext, int ext_len, const uint8_t *oid, 
  * Extract all extensions.
  * @return Returns -1 if OID was not found. Otherwise, returns 1;
  */
-static int extract_cert_extensions(const uint8_t *ext, int ext_len,
+static int extract_cert_extensions(const uint8_t *ext, uint32_t ext_len,
 				   attestation_evidence_t *evidence)
 {
 	if (!strcmp(evidence->type, "sgx_epid")) {
-		int rc = extract_x509_extension(ext, ext_len, ias_response_body_oid, ias_oid_len,
+		int rc = extract_x509_extension(ext, ext_len, ias_response_body_oid, (uint32_t)ias_oid_len,
 						evidence->epid.ias_report,
 						&evidence->epid.ias_report_len,
 						sizeof(evidence->epid.ias_report));
 		if (rc != 1)
 			return rc;
 
-		rc = extract_x509_extension(ext, ext_len, ias_root_cert_oid, ias_oid_len,
+		rc = extract_x509_extension(ext, ext_len, ias_root_cert_oid, (uint32_t)ias_oid_len,
 					    evidence->epid.ias_sign_ca_cert,
 					    &evidence->epid.ias_sign_ca_cert_len,
 					    sizeof(evidence->epid.ias_sign_ca_cert));
 		if (rc != 1)
 			return rc;
 
-		rc = extract_x509_extension(ext, ext_len, ias_leaf_cert_oid, ias_oid_len,
+		rc = extract_x509_extension(ext, ext_len, ias_leaf_cert_oid, (uint32_t)ias_oid_len,
 					    evidence->epid.ias_sign_cert,
 					    &evidence->epid.ias_sign_cert_len,
 					    sizeof(evidence->epid.ias_sign_cert));
 		if (rc != 1)
 			return rc;
 
-		rc = extract_x509_extension(ext, ext_len, ias_report_signature_oid, ias_oid_len,
+		rc = extract_x509_extension(ext, ext_len, ias_report_signature_oid, (uint32_t)ias_oid_len,
 					    evidence->epid.ias_report_signature,
 					    &evidence->epid.ias_report_signature_len,
 					    sizeof(evidence->epid.ias_report_signature));
 		return rc;
 	} else if (!strcmp(evidence->type, "sgx_ecdsa")) {
-		return extract_x509_extension(ext, ext_len, ecdsa_quote_oid, ias_oid_len,
+		return extract_x509_extension(ext, ext_len, ecdsa_quote_oid, (uint32_t)ias_oid_len,
 					      evidence->ecdsa.quote, &evidence->ecdsa.quote_len,
 					      sizeof(evidence->ecdsa.quote));
 	} else if (!strcmp(evidence->type, "sgx_la")) {
-		return extract_x509_extension(ext, ext_len, la_report_oid, ias_oid_len,
+		return extract_x509_extension(ext, ext_len, la_report_oid, (uint32_t)ias_oid_len,
 					      evidence->la.report, &evidence->la.report_len,
 					      sizeof(evidence->la.report));
 	}
@@ -132,7 +132,7 @@ static int extract_cert_extensions(const uint8_t *ext, int ext_len,
 	return 1;
 }
 
-crypto_wrapper_err_t sha256_rsa_pubkey(unsigned char hash[SHA256_DIGEST_SIZE], RsaKey *key)
+crypto_wrapper_err_t sha256_rsa_pubkey(uint8_t hash[SHA256_DIGEST_SIZE], RsaKey *key)
 {
 	uint8_t buf[1024];
 
@@ -144,7 +144,7 @@ crypto_wrapper_err_t sha256_rsa_pubkey(unsigned char hash[SHA256_DIGEST_SIZE], R
 
 	Sha256 sha;
 	wc_InitSha256(&sha);
-	wc_Sha256Update(&sha, buf, pub_rsa_key_der_len);
+	wc_Sha256Update(&sha, buf, (uint32_t)pub_rsa_key_der_len);
 	wc_Sha256Final(&sha, hash);
 
 	return CRYPTO_WRAPPER_ERR_NONE;
@@ -212,7 +212,7 @@ int verify_certificate(int preverify, WOLFSSL_X509_STORE_CTX *store)
 	 */
 	attestation_evidence_t evidence;
 	uint8_t *ext_data;
-	size_t ext_data_len;
+	uint32_t ext_data_len;
 
 	if (find_oid(der_cert, der_cert_len, ecdsa_quote_oid, ias_oid_len, &ext_data,
 		     &ext_data_len) == 1)
@@ -223,7 +223,7 @@ int verify_certificate(int preverify, WOLFSSL_X509_STORE_CTX *store)
 	else
 		strncpy(evidence.type, "nullverifier", sizeof(evidence.type));
 
-	int rc = extract_cert_extensions(crt.extensions, crt.extensionsSz, &evidence);
+	int rc = extract_cert_extensions(crt.extensions, (uint32_t)crt.extensionsSz, &evidence);
 	if (rc != 1) {
 		ETLS_ERR("ERROR: extract_cert_extensions %d\n", rc);
 		return 0;

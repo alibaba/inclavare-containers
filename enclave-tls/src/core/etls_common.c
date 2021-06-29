@@ -91,8 +91,8 @@ enclave_tls_log_level_t etls_loglevel_getenv(const char *name)
 }
 
 enclave_tls_err_t etls_instance_init(const char *name,
-                                     const char *realpath,
-                                     void **handle
+                                     __attribute__((unused)) const char *realpath,
+                                     __attribute__((unused)) void **handle
                                      )
 {
 #ifdef SGX

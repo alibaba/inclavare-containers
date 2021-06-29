@@ -10,9 +10,13 @@
 #include <sgx_quote.h>
 #include <sgx_quote_3.h>
 #include <sgx_ql_quote.h>
+#ifndef SGX
 #include <sgx_dcap_quoteverify.h>
+#endif
 #include "sgx_ecdsa.h"
-//#include "sgx_stub_u.h"
+#ifdef SGX
+#include <etls_t.h>
+#endif
 // clang-format off
 #ifdef OCCLUM
   #include <sys/stat.h>
@@ -23,34 +27,19 @@
 #endif
 // clang-format on
 
-void get_random_nonce(uint8_t *nonce, uint32_t size)
-{
-	for (uint32_t i = 0; i < size; i++)
-		nonce[i] = (uint8_t)((rand() % 255) + 1);
-}
-
 enclave_verifier_err_t sgx_ecdsa_verify_evidence(enclave_verifier_ctx_t *ctx,
-						 attestation_evidence_t *evidence, uint8_t *hash,
-						 __attribute__((unused)) uint32_t hash_len)
+					      attestation_evidence_t *evidence, uint8_t *hash,
+					      __attribute__((unused)) uint32_t hash_len)
 {
 	ETLS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
 	enclave_verifier_err_t err = -ENCLAVE_VERIFIER_ERR_UNKNOWN;
+#ifdef OCCLUM
 	uint32_t supplemental_data_size = 0;
 	uint8_t *p_supplemental_data = NULL;
 	sgx_ql_qv_result_t quote_verification_result = SGX_QL_QV_RESULT_UNSPECIFIED;
 	uint32_t collateral_expiration_status = 1;
-#if !defined(OCCLUM)
-	time_t current_time = 0;
-	sgx_isv_svn_t qve_isvsvn_threshold = 3;
-	sgx_status_t sgx_ret = SGX_SUCCESS;
-	quote3_error_t verify_qveid_ret = SGX_QL_ERROR_UNEXPECTED;
-	quote3_error_t dcap_ret = SGX_QL_ERROR_UNEXPECTED;
-	sgx_ql_qe_report_info_t *qve_report_info = NULL;
-	uint8_t rand_nonce[16];
-#endif
 
-#ifdef OCCLUM
 	int sgx_fd = open("/dev/sgx", O_RDONLY);
 	if (sgx_fd < 0) {
 		ETLS_ERR("failed to open /dev/sgx\n");
@@ -87,122 +76,6 @@ enclave_verifier_err_t sgx_ecdsa_verify_evidence(enclave_verifier_ctx_t *ctx,
 	}
 
 	close(sgx_fd);
-#else
-	sgx_ecdsa_ctx_t *ecdsa_ctx = (sgx_ecdsa_ctx_t *)ctx->verifier_private;
-	sgx_quote3_t *pquote = (sgx_quote3_t *)malloc(8192);
-	if (!pquote) {
-		ETLS_ERR("failed to malloc sgx quote3 data space.\n");
-		return -ENCLAVE_VERIFIER_ERR_NO_MEM;
-	}
-
-	memcpy(pquote, evidence->ecdsa.quote, evidence->ecdsa.quote_len);
-
-	uint32_t quote_size = (uint32_t)sizeof(sgx_quote3_t) + pquote->signature_data_len;
-	ETLS_DEBUG("quote size is %d, quote signature_data_len is %d\n", quote_size,
-		   pquote->signature_data_len);
-
-	/* First verify the hash value */
-	if (memcmp(hash, pquote->report_body.report_data.d, hash_len) != 0) {
-		ETLS_ERR("unmatched hash value in evidence.\n");
-		ETLS_DEBUG("the sha256 of public key   %02x%02x%02x%02x%02x%02x%02x%02x...%02x%02x%02x%02x\n",
-			   hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7],
-			   hash[28], hash[29], hash[30], hash[31]);
-		hash = pquote->report_body.report_data.d;
-		ETLS_DEBUG("the sha256 in quote report %02x%02x%02x%02x%02x%02x%02x%02x...%02x%02x%02x%02x\n",
-			   hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7],
-			   hash[28], hash[29], hash[30], hash[31]);
-		err = -ENCLAVE_VERIFIER_ERR_INVALID;
-		goto errout;
-	}
-
-	/* sgx_ecdsa_qve instance re-uses this code and thus we need to distinguish
-	 * it from sgx_ecdsa instance.
-	 */
-	if (!strcmp(ctx->opts->name, "sgx_ecdsa_qve")) {
-		qve_report_info = malloc(sizeof(sgx_ql_qe_report_info_t));
-		if (!qve_report_info) {
-			ETLS_ERR("failed to malloc qve report info.\n");
-			goto errout;
-		}
-		get_random_nonce(rand_nonce, sizeof(rand_nonce));
-		memcpy(qve_report_info->nonce.rand, rand_nonce, sizeof(rand_nonce));
-
-		sgx_status_t get_target_info_ret;
-		sgx_ret = ecall_get_target_info((sgx_enclave_id_t)ecdsa_ctx->eid,
-						&get_target_info_ret,
-						&qve_report_info->app_enclave_target_info);
-		if (sgx_ret != SGX_SUCCESS || get_target_info_ret != SGX_SUCCESS) {
-			ETLS_ERR(
-				"failed to get target info sgx_ret and get_target_info_ret. %04x, %04x\n",
-				sgx_ret, get_target_info_ret);
-			err = SGX_ECDSA_VERIFIER_ERR_CODE((int)get_target_info_ret);
-			goto errout;
-		} else
-			ETLS_INFO("get target info successfully.\n");
-
-		dcap_ret = sgx_qv_set_enclave_load_policy(SGX_QL_DEFAULT);
-		if (dcap_ret == SGX_QL_SUCCESS)
-			ETLS_INFO("sgx qv setting for enclave load policy succeeds.\n");
-		else {
-			ETLS_ERR("failed to set enclave load policy by sgx qv: %04x\n", dcap_ret);
-			err = SGX_ECDSA_VERIFIER_ERR_CODE((int)dcap_ret);
-			goto errout;
-		}
-	}
-
-	dcap_ret = sgx_qv_get_quote_supplemental_data_size(&supplemental_data_size);
-	if (dcap_ret == SGX_QL_SUCCESS) {
-		ETLS_INFO("sgx qv gets quote supplemental data size successfully.\n");
-		p_supplemental_data = (uint8_t *)malloc(supplemental_data_size);
-		if (!p_supplemental_data) {
-			ETLS_ERR("failed to malloc supplemental data space.\n");
-			err = -ENCLAVE_VERIFIER_ERR_NO_MEM;
-			goto errout;
-		}
-	} else {
-		ETLS_ERR("failed to get quote supplemental data size by sgx qv: %04x\n", dcap_ret);
-		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)dcap_ret);
-		goto errout;
-	}
-
-	current_time = time(NULL);
-
-	dcap_ret = sgx_qv_verify_quote(evidence->ecdsa.quote, (uint32_t)quote_size, NULL,
-				       current_time, &collateral_expiration_status,
-				       &quote_verification_result, qve_report_info,
-				       supplemental_data_size, p_supplemental_data);
-	if (dcap_ret == SGX_QL_SUCCESS)
-		ETLS_INFO("sgx qv verifies quote successfully.\n");
-	else {
-		ETLS_ERR("failed to verify quote by sgx qv: %04x\n", dcap_ret);
-		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)dcap_ret);
-		goto errret;
-	}
-
-	if (!strcmp(ctx->opts->name, "sgx_ecdsa_qve")) {
-		sgx_ret = sgx_tvl_verify_qve_report_and_identity(
-			(sgx_enclave_id_t)ecdsa_ctx->eid, &verify_qveid_ret, evidence->ecdsa.quote,
-			(uint32_t)quote_size, qve_report_info, current_time,
-			collateral_expiration_status, quote_verification_result,
-			p_supplemental_data, supplemental_data_size, qve_isvsvn_threshold);
-		if (sgx_ret != SGX_SUCCESS || verify_qveid_ret != SGX_QL_SUCCESS) {
-			ETLS_ERR("verify QvE report and identity failed. %04x\n", verify_qveid_ret);
-			err = SGX_ECDSA_VERIFIER_ERR_CODE((int)verify_qveid_ret);
-			goto errret;
-		} else
-			ETLS_INFO("verify QvE report and identity successfully.\n");
-
-		if (qve_report_info) {
-			if (memcmp(qve_report_info->nonce.rand, rand_nonce, sizeof(rand_nonce)) !=
-			    0) {
-				ETLS_ERR(
-					"nonce during SGX quote verification has been tampered with.\n");
-				err = -ENCLAVE_VERIFIER_ERR_INVALID;
-				goto errret;
-			}
-		}
-	}
-#endif
 
 	/* Check verification result */
 	switch (quote_verification_result) {
@@ -228,13 +101,12 @@ enclave_verifier_err_t sgx_ecdsa_verify_evidence(enclave_verifier_ctx_t *ctx,
 		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)quote_verification_result);
 		break;
 	}
-
-#if !defined(OCCLUM)
-errret:
-	free(p_supplemental_data);
-errout:
-	free(qve_report_info);
-	free(pquote);
+#else
+	sgx_ecdsa_ctx_t *ecdsa_ctx = (sgx_ecdsa_ctx_t *)ctx->verifier_private;
+	sgx_enclave_id_t eid = (sgx_enclave_id_t)ecdsa_ctx->eid;
+	ocall_ecdsa_verify_evidence(&err, ctx, eid, ctx->opts->name,
+                                    evidence, sizeof(attestation_evidence_t),
+                                    hash, hash_len);
 #endif
 
 	return err;

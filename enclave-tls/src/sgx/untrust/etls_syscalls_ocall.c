@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include "etls_syscalls.h"
 
 void ocall_exit(void)
@@ -127,13 +129,13 @@ void ocall_getenv(const char *name, char *value, size_t len)
 		strncpy(value, "null", len);
 }
 
-static double current_time()
+static double current_time(void)
 {
 	struct timeval tv;
 
 	gettimeofday(&tv, NULL);
 
-	return (double)(1000000 * tv.tv_sec + tv.tv_usec) / 1000000.0;
+	return (double)((1000000.0 * (double)tv.tv_sec + (double)tv.tv_usec) / 1000000.0);
 }
 
 void ocall_current_time(double *time)
@@ -148,9 +150,11 @@ void ocall_current_time(double *time)
 
 void ocall_low_res_time(int *time)
 {
-	if (!time)
-		return;
+        if (!time)
+                return;
 
-	struct timeval tv;
-	*time = tv.tv_sec;
+        struct timeval tv;
+
+        gettimeofday(&tv,NULL);
+        *time = (int)tv.tv_sec;
 }

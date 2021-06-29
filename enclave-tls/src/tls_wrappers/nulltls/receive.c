@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 #include <enclave-tls/log.h>
+#include <internal/core.h>
 #include <enclave-tls/tls_wrapper.h>
 #ifdef SGX
 #include "etls_t.h"
@@ -21,7 +22,7 @@ tls_wrapper_err_t nulltls_receive(tls_wrapper_ctx_t *ctx, void *buf, size_t *buf
 		return -TLS_WRAPPER_ERR_RECEIVE;
 	}
 
-	*buf_size = rc;
+	*buf_size = (size_t)rc;
 
 	return TLS_WRAPPER_ERR_NONE;
 }

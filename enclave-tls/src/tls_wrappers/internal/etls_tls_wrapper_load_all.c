@@ -27,8 +27,8 @@
 
 static int tls_wrapper_cmp(const void *a, const void *b)
 {
-	return (*(tls_wrapper_ctx_t **)b)->opts->priority -
-	       (*(tls_wrapper_ctx_t **)a)->opts->priority;
+	return (*(const tls_wrapper_ctx_t **)b)->opts->priority -
+	       (*(const tls_wrapper_ctx_t **)a)->opts->priority;
 }
 
 enclave_tls_err_t etls_tls_wrapper_load_all(void)

@@ -15,20 +15,20 @@
 #include <enclave-tls/api.h>
 #include <enclave-tls/log.h>
 
-#define DEFAULT_PORT 1234
-#define DEFAULT_IP   "127.0.0.1"
+#define DEFAULT_PORT    1234
+#define DEFAULT_IP      "127.0.0.1"
 
 // clang-format off
 #ifdef OCCLUM
-  #include <sgx_report.h>
+#include <sgx_report.h>
 #elif defined(SGX)
-  #include <sgx_urts.h>
-  #include <sgx_quote.h>
-  #include "sgx_stub_u.h"
+#include <sgx_urts.h>
+#include <sgx_quote.h>
+#include "sgx_stub_u.h"
 
-  #define ENCLAVE_FILENAME "sgx_stub_enclave.signed.so"
+#define ENCLAVE_FILENAME        "sgx_stub_enclave.signed.so"
 
-static sgx_enclave_id_t load_enclave(bool debug_enclave)
+static int64_t load_enclave(bool debug_enclave)
 {
 	sgx_launch_token_t t;
 
@@ -44,7 +44,7 @@ static sgx_enclave_id_t load_enclave(bool debug_enclave)
 
 	printf("Success to load enclave id %ld\n", eid);
 
-	return eid;
+	return (int64_t)eid;
 }
 // clang-format on
 
@@ -52,11 +52,10 @@ int enclave_tls_client_startup(enclave_tls_log_level_t log_level, char *attester
 		               char *verifier_type, char *tls_type, char *crypto_type,
                                bool mutual, bool debug_enclave, char *ip, int port)
 {
-	enclave_tls_conf_t conf;
-	unsigned long long enclave_id = 0;
+	int64_t enclave_id = 0;
 	unsigned long flags = 0;
 	uint32_t s_ip = inet_addr(ip);
-	uint16_t s_port = htons(port);
+	uint16_t s_port = htons((uint16_t)port);
 
 	enclave_id = load_enclave(debug_enclave);
 	if (enclave_id == -1) {
@@ -67,13 +66,15 @@ int enclave_tls_client_startup(enclave_tls_log_level_t log_level, char *attester
 		flags |= ENCLAVE_TLS_CONF_FLAGS_MUTUAL;
 
 	int ret = 0;
-	int sgx_status = ecall_etls_client_startup(enclave_id, &ret, enclave_id,
+	int sgx_status = ecall_etls_client_startup((sgx_enclave_id_t)enclave_id, &ret, (sgx_enclave_id_t)enclave_id,
                                                    log_level, attester_type,
                                                    verifier_type, tls_type,
                                                    crypto_type, flags,
                                                    s_ip, s_port);
-	return ret;
+        if (sgx_status != SGX_SUCCESS || ret)
+                printf("failed to startup client: sgx status %#x return %#x\n", sgx_status, ret);
 
+	return ret;
 }
 #endif
 
@@ -287,11 +288,14 @@ int main(int argc, char **argv)
 			     "        --port/-p             set the listening tcp port\n"
 			     "        --debug-enclave/-D    set to enable enclave debugging\n"
 			     "        --help/-h             show the usage\n");
+                        exit(1);
+                        /* Avoid compiling warning */
+                        break;
 		default:
 			exit(1);
 		}
 	} while (opt != -1);
 
-	return enclave_tls_client_startup(log_level, attester_type, verifier_type, tls_type,
-				          crypto_type, mutual, debug_enclave, srv_ip, port);
+        return enclave_tls_client_startup(log_level, attester_type, verifier_type, tls_type,
+                        crypto_type, mutual, debug_enclave, srv_ip, port);
 }

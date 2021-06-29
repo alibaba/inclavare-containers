@@ -5,14 +5,17 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <dlfcn.h>
 #include <enclave-tls/err.h>
 #include <enclave-tls/log.h>
 #include "internal/core.h"
 #include "internal/verifier.h"
 
-#define PATTERN_PREFIX "libverifier_"
-#define PATTERN_SUFFIX ".so"
+#define PATTERN_PREFIX  "libverifier_"
+#ifdef SGX
+#define PATTERN_SUFFIX  ".a"
+#else
+#define PATTERN_SUFFIX  ".so"
+#endif
 
 enclave_tls_err_t etls_enclave_verifier_load_single(const char *fname)
 {
@@ -30,18 +33,18 @@ enclave_tls_err_t etls_enclave_verifier_load_single(const char *fname)
 	}
 
 	char realpath[strlen(ENCLAVE_VERIFIERS_DIR) + strlen(fname) + 1];
-	sprintf(realpath, "%s%s", ENCLAVE_VERIFIERS_DIR, fname);
-
-	void *handle = dlopen(realpath, RTLD_LAZY);
-	if (!handle) {
-		ETLS_ERR("failed on dlopen(): %s\n", dlerror());
-		return -ENCLAVE_TLS_ERR_DLOPEN;
-	}
+	snprintf(realpath, sizeof(realpath), "%s%s", ENCLAVE_VERIFIERS_DIR, fname);
 
 	size_t name_len = strlen(fname) - strlen(PATTERN_PREFIX) - strlen(PATTERN_SUFFIX);
 	char name[name_len + 1];
 	strncpy(name, fname + strlen(PATTERN_PREFIX), name_len);
 	name[name_len] = '\0';
+
+        void *handle = NULL;
+        enclave_tls_err_t err = etls_instance_init(name, realpath, &handle);
+        if (err != ENCLAVE_TLS_ERR_NONE)
+                return err;
+
 
 	unsigned int i = 0;
 	enclave_verifier_opts_t *opts = NULL;
@@ -58,11 +61,11 @@ enclave_tls_err_t etls_enclave_verifier_load_single(const char *fname)
 	}
 
 	if (opts->pre_init) {
-		enclave_tls_err_t err = opts->pre_init();
+		enclave_verifier_err_t err_ev = opts->pre_init();
 
-		if (err != ENCLAVE_VERIFIER_ERR_NONE) {
-			ETLS_ERR("failed on pre_init() of enclave verifier '%s' %#x\n", name, err);
-			return err;
+		if (err_ev != ENCLAVE_VERIFIER_ERR_NONE) {
+			ETLS_ERR("failed on pre_init() of enclave verifier '%s' %#x\n", name, err_ev);
+			return -ENCLAVE_TLS_ERR_INVALID;
 		}
 	}
 

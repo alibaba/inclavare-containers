@@ -31,7 +31,11 @@ static enclave_attester_opts_t nullattester_opts = {
 	.cleanup = nullattester_cleanup,
 };
 
+#ifdef SGX
+void libattester_null_init(void)
+#else
 void __attribute__((constructor)) libattester_null_init(void)
+#endif
 {
 	ETLS_DEBUG("called\n");
 

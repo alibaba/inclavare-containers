@@ -17,6 +17,7 @@ enclave_attester_err_t enclave_attester_register(const enclave_attester_opts_t *
 
 	ETLS_DEBUG("registering the enclave attester '%s' ...\n", opts->name);
 
+#ifndef SGX
 	if (opts->flags & ENCLAVE_ATTESTER_OPTS_FLAGS_SGX_ENCLAVE) {
 		if (!is_sgx_supported_and_configured()) {
 			// clang-format off
@@ -25,6 +26,7 @@ enclave_attester_err_t enclave_attester_register(const enclave_attester_opts_t *
 			return -ENCLAVE_ATTESTER_ERR_INVALID;
 		}
 	}
+#endif
 
 	enclave_attester_opts_t *new_opts = (enclave_attester_opts_t *)malloc(sizeof(*new_opts));
 	if (!new_opts)
@@ -50,7 +52,7 @@ enclave_attester_err_t enclave_attester_register(const enclave_attester_opts_t *
 
 	/* Default type equals to name */
 	if (new_opts->type[0] == '\0')
-		strcpy(new_opts->type, new_opts->name);
+		strncpy(new_opts->type, new_opts->name, sizeof(new_opts->type));
 
 	enclave_attesters_opts[registerd_enclave_attester_nums++] = new_opts;
 

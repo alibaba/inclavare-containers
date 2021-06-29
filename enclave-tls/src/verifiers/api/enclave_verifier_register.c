@@ -17,6 +17,7 @@ enclave_verifier_err_t enclave_verifier_register(const enclave_verifier_opts_t *
 
 	ETLS_DEBUG("registering the enclave verifier '%s' ...\n", opts->name);
 
+#ifndef SGX
 	if (opts->flags & ENCLAVE_VERIFIER_OPTS_FLAGS_SGX_ENCLAVE) {
 		if (!is_sgx_supported_and_configured()) {
 			// clang-format off
@@ -25,6 +26,7 @@ enclave_verifier_err_t enclave_verifier_register(const enclave_verifier_opts_t *
 			return -ENCLAVE_VERIFIER_ERR_INVALID;
 		}
 	}
+#endif
 
 	enclave_verifier_opts_t *new_opts = (enclave_verifier_opts_t *)malloc(sizeof(*new_opts));
 	if (!new_opts)
@@ -50,7 +52,7 @@ enclave_verifier_err_t enclave_verifier_register(const enclave_verifier_opts_t *
 
 	/* Default type equals to name */
 	if (new_opts->type[0] == '\0')
-		strcpy(new_opts->type, new_opts->name);
+		strncpy(new_opts->type, new_opts->name, sizeof(new_opts->type));
 
 	enclave_verifiers_opts[registerd_enclave_verifier_nums++] = new_opts;
 

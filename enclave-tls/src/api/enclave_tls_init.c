@@ -15,6 +15,8 @@
 
 enclave_tls_err_t enclave_tls_init(const enclave_tls_conf_t *conf, enclave_tls_handle *handle)
 {
+        char *choice = NULL;
+
 	if (!conf || !handle)
 		return -ENCLAVE_TLS_ERR_INVALID;
 
@@ -49,7 +51,7 @@ enclave_tls_err_t enclave_tls_init(const enclave_tls_conf_t *conf, enclave_tls_h
 	global_log_level = ctx->config.log_level;
 
 	/* Select the target crypto wrapper to be used */
-	char *choice = ctx->config.crypto_type;
+	choice = ctx->config.crypto_type;
 	if (choice[0] == '\0') {
 		choice = global_core_context.config.crypto_type;
 		if (choice[0] == '\0')

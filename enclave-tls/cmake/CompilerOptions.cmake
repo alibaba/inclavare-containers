@@ -45,7 +45,7 @@ if(SGX)
     set(SGX_COMMON_FLAGS "${SGX_COMMON_FLAGS} -Wall -Wextra -Winit-self")
     set(SGX_COMMON_FLAGS "${SGX_COMMON_FLAGS} -Wpointer-arith -Wreturn-type -Waddress -Wsequence-point")
     set(SGX_COMMON_FLAGS "${SGX_COMMON_FLAGS} -Wformat-security -Wmissing-include-dirs -Wfloat-equal")
-    set(SGX_COMMON_FLAGS "${SGX_COMMON_FLAGS} -Wundef -Wshadow -Wcast-align -Wcast-qual -Wconversion")
+    set(SGX_COMMON_FLAGS "${SGX_COMMON_FLAGS} -Wundef -Wshadow -Wcast-align -Wconversion")
     set(SGX_COMMON_FLAGS "${SGX_COMMON_FLAGS} -Wredundant-decls")
 
     set(ENCLAVE_COMMON_FLAGS "-nostdinc -ffreestanding -fvisibility=hidden -fpie -ffunction-sections -fdata-sections")
@@ -56,7 +56,7 @@ if(SGX)
         set(ENCLAVE_COMMON_FLAGS "${ENCLAVE_COMMON_FLAGS} -fstack-protector-strong")
     endif()
     
-    set(SGX_COMMON_CFLAGS "${SGX_COMMON_FLAGS} -Wjump-misses-init -Wstrict-prototypes -Wunsuffixed-float-constants")
+    set(SGX_COMMON_CFLAGS "${SGX_COMMON_FLAGS} -Wstrict-prototypes -Wunsuffixed-float-constants")
     set(SGX_COMMON_CXXFLAGS "${SGX_COMMON_FLAGS} -Wnon-virtual-dtor -std=c++11")
     
     set(ENCLAVE_INCLUDES "${SGX_INCLUDE}" "${SGX_TLIBC_INCLUDE}" "${SGX_LIBCXX_INCLUDE}" "/usr/include")

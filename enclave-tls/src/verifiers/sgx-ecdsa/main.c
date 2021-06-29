@@ -27,7 +27,11 @@ static enclave_verifier_opts_t sgx_ecdsa_verifier_opts = {
 	.cleanup = sgx_ecdsa_verifier_cleanup,
 };
 
+#ifdef SGX
+void libverifier_sgx_ecdsa_init(void)
+#else
 void __attribute__((constructor)) libverifier_sgx_ecdsa_init(void)
+#endif
 {
 	ETLS_DEBUG("called\n");
 

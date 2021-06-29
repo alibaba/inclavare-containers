@@ -28,18 +28,18 @@ void ocall_ratls_get_target_info(sgx_target_info_t *qe_target_info)
 		printf("sgx_qe_get_target_info() with error code 0x%04x\n", qe3_ret);
 }
 
-quote3_error_t ocall_qe_get_quote_size(uint32_t *quote_size)
+enclave_attester_err_t ocall_qe_get_quote_size(uint32_t *quote_size)
 {
 	quote3_error_t qe3_ret = sgx_qe_get_quote_size(quote_size);
 	if (SGX_QL_SUCCESS != qe3_ret) {
 		printf("sgx_qe_get_quote_size(): 0x%04x\n", qe3_ret);
-		return SGX_ECDSA_ERR_CODE((int)qe3_ret);
+		return SGX_ECDSA_ATTESTER_ERR_CODE((int)qe3_ret);
 	}
 
 	return ENCLAVE_ATTESTER_ERR_NONE;
 }
 
-quote3_error_t ocall_qe_get_quote(sgx_report_t *report,
+enclave_attester_err_t ocall_qe_get_quote(sgx_report_t *report,
                                   uint32_t quote_size,
                                   uint8_t *quote)
 {
@@ -48,17 +48,17 @@ quote3_error_t ocall_qe_get_quote(sgx_report_t *report,
                                                   quote);
 	if (SGX_QL_SUCCESS != qe3_ret) {
 		printf("sgx_qe_get_quote(): 0x%04x\n", qe3_ret);
-		return SGX_ECDSA_ERR_CODE((int)qe3_ret);
+		return SGX_ECDSA_ATTESTER_ERR_CODE((int)qe3_ret);
 	}
 
 	return ENCLAVE_ATTESTER_ERR_NONE;
 }
 
-enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
+enclave_verifier_err_t ocall_ecdsa_verify_evidence(__attribute__((unused)) enclave_verifier_ctx_t *ctx,
                                                 sgx_enclave_id_t enclave_id,
                                                 const char *name,
                                                 attestation_evidence_t *evidence,
-                                                uint32_t evidence_len,
+                                                __attribute__((unused)) uint32_t evidence_len,
                                                 uint8_t *hash,
                                                 uint32_t hash_len)
 {
@@ -113,7 +113,7 @@ enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
 		if (sgx_ret != SGX_SUCCESS || get_target_info_ret != SGX_SUCCESS) {
 			printf("failed to get target info sgx_ret and get_target_info_ret. %04x, %04x\n",
 				sgx_ret, get_target_info_ret);
-			err = SGX_ECDSA_ERR_CODE((int)get_target_info_ret);
+			err = SGX_ECDSA_VERIFIER_ERR_CODE((int)get_target_info_ret);
 			goto errout;
 		} else
 			printf("get target info successfully.\n");
@@ -123,7 +123,7 @@ enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
 			printf("sgx qv setting for enclave load policy succeeds.\n");
 		else {
 			printf("failed to set enclave load policy by sgx qv: %04x\n", dcap_ret);
-			err = SGX_ECDSA_ERR_CODE((int)dcap_ret);
+			err = SGX_ECDSA_VERIFIER_ERR_CODE((int)dcap_ret);
 			goto errout;
 		}
 	}
@@ -139,7 +139,7 @@ enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
 		}
 	} else {
 		printf("failed to get quote supplemental data size by sgx qv: %04x\n", dcap_ret);
-		err = SGX_ECDSA_ERR_CODE((int)dcap_ret);
+		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)dcap_ret);
 		goto errout;
 	}
 
@@ -153,7 +153,7 @@ enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
 		printf("sgx qv verifies quote successfully.\n");
 	else {
 		printf("failed to verify quote by sgx qv: %04x\n", dcap_ret);
-		err = SGX_ECDSA_ERR_CODE((int)dcap_ret);
+		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)dcap_ret);
 		goto errret;
 	}
 
@@ -165,7 +165,7 @@ enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
 			p_supplemental_data, supplemental_data_size, qve_isvsvn_threshold);
 		if (sgx_ret != SGX_SUCCESS || verify_qveid_ret != SGX_QL_SUCCESS) {
 			printf("verify QvE report and identity failed. %04x\n", verify_qveid_ret);
-			err = SGX_ECDSA_ERR_CODE((int)verify_qveid_ret);
+			err = SGX_ECDSA_VERIFIER_ERR_CODE((int)verify_qveid_ret);
 			goto errret;
 		} else
 			printf("verify QvE report and identity successfully.\n");
@@ -193,7 +193,7 @@ enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
 	case SGX_QL_QV_RESULT_CONFIG_AND_SW_HARDENING_NEEDED:
 		printf("verification completed with Non-terminal result: %x\n",
 			  quote_verification_result);
-		err = SGX_ECDSA_ERR_CODE((int)quote_verification_result);
+		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)quote_verification_result);
 		break;
 	case SGX_QL_QV_RESULT_INVALID_SIGNATURE:
 	case SGX_QL_QV_RESULT_REVOKED:
@@ -201,7 +201,7 @@ enclave_attester_err_t ocall_ecdsa_verify_evidence(enclave_attester_ctx_t *ctx,
 	default:
 		printf("verification completed with Terminal result: %x\n",
 			 quote_verification_result);
-		err = SGX_ECDSA_ERR_CODE((int)quote_verification_result);
+		err = SGX_ECDSA_VERIFIER_ERR_CODE((int)quote_verification_result);
 		break;
 	}
 

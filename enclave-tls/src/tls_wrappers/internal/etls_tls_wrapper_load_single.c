@@ -60,11 +60,11 @@ enclave_tls_err_t etls_tls_wrapper_load_single(const char *fname)
 	}
 
 	if (opts->pre_init) {
-		enclave_tls_err_t err = opts->pre_init();
+		tls_wrapper_err_t err_tw = opts->pre_init();
 
-		if (err != TLS_WRAPPER_ERR_NONE) {
-			ETLS_ERR("failed on pre_init() of tls wrapper '%s' %#x\n", name, err);
-			return err;
+		if (err_tw != TLS_WRAPPER_ERR_NONE) {
+			ETLS_ERR("failed on pre_init() of tls wrapper '%s' %#x\n", name, err_tw);
+			return err_tw;
 		}
 	}
 

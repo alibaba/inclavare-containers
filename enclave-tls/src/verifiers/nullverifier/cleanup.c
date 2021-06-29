@@ -8,7 +8,7 @@
 
 enclave_verifier_err_t nullverifier_cleanup(enclave_verifier_ctx_t *ctx)
 {
-	ETLS_DEBUG("called\n");
+	ETLS_DEBUG("called enclave verifier ctx: %#x\n", ctx);
 
 	return ENCLAVE_VERIFIER_ERR_NONE;
 }

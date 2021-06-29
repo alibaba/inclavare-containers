@@ -13,7 +13,7 @@
 static const int rsa_pub_3072_raw_der_len = 398;
 
 static int gen_rsa3072_pubkey(wolfcrypt_ctx_t *wc_ctx, uint8_t *pub_key_buf,
-			      unsigned int *pub_key_len)
+			      uint32_t *pub_key_len)
 {
 	/* SetRsaPublicKey() only exports n and e without wrapping them in
 	   additional ASN.1 (PKCS#1). */
@@ -25,8 +25,8 @@ static int gen_rsa3072_pubkey(wolfcrypt_ctx_t *wc_ctx, uint8_t *pub_key_buf,
 		return pub_rsa_key_der_len;
 	}
 
-	*pub_key_len = (unsigned int)pub_rsa_key_der_len;
-	memcpy(pub_key_buf, buf, (size_t)pub_rsa_key_der_len);
+	*pub_key_len = (uint32_t)pub_rsa_key_der_len;
+	memcpy(pub_key_buf, buf, (uint32_t)pub_rsa_key_der_len);
 
 	return 0;
 }
@@ -45,7 +45,7 @@ crypto_wrapper_err_t wolfcrypt_gen_pubkey_hash(crypto_wrapper_ctx_t *ctx,
 	}
 
 	wolfcrypt_ctx_t *wc_ctx = (wolfcrypt_ctx_t *)ctx->crypto_private;
-	unsigned int pubkey_len;
+	uint32_t pubkey_len;
 	uint8_t pubkey_buf[1024];
 	int err = gen_rsa3072_pubkey(wc_ctx, pubkey_buf, &pubkey_len);
 	if (err)

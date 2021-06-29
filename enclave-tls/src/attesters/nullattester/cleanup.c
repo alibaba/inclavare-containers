@@ -8,7 +8,7 @@
 
 enclave_attester_err_t nullattester_cleanup(enclave_attester_ctx_t *ctx)
 {
-	ETLS_DEBUG("called\n");
+	ETLS_DEBUG("called enclave_attester_ctx: %#x\n", ctx);
 
 	return ENCLAVE_ATTESTER_ERR_NONE;
 }

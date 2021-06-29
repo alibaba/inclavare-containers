@@ -2,6 +2,7 @@ enclave {
 	include "api.h"
 	include "cert.h"
         include "enclave-tls/verifier.h"
+        include "enclave-tls/attester.h"
 	include "err.h"
 	include "sgx_report.h"
 	include "sgx_quote_3.h"
@@ -15,9 +16,9 @@ enclave {
 	untrusted {
 		void ocall_ratls_get_target_info([out] sgx_target_info_t *qe_target_info);
 
-		quote3_error_t ocall_qe_get_quote_size([out] uint32_t *quote_size);
+		enclave_attester_err_t ocall_qe_get_quote_size([out] uint32_t *quote_size);
 
-		quote3_error_t ocall_qe_get_quote([in]sgx_report_t *report, uint32_t quote_size,
+		enclave_attester_err_t ocall_qe_get_quote([in]sgx_report_t *report, uint32_t quote_size,
                                                 [out, size=quote_size] uint8_t *quote);
 
 		enclave_verifier_err_t ocall_ecdsa_verify_evidence([user_check] enclave_verifier_ctx_t *ctx,

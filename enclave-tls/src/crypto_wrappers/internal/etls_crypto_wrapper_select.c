@@ -11,8 +11,7 @@
 
 static enclave_tls_err_t init_crypto_wrapper(crypto_wrapper_ctx_t *crypto_ctx)
 {
-	enclave_tls_err_t err = crypto_ctx->opts->init(crypto_ctx);
-
+	crypto_wrapper_err_t err = crypto_ctx->opts->init(crypto_ctx);
 	if (err != CRYPTO_WRAPPER_ERR_NONE)
 		return err;
 

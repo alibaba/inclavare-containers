@@ -27,7 +27,11 @@ static enclave_verifier_opts_t nullverifier_opts = {
 	.cleanup = nullverifier_cleanup,
 };
 
+#ifdef SGX
+void libverifier_null_init(void)
+#else
 void __attribute__((constructor)) libverifier_null_init(void)
+#endif
 {
 	ETLS_DEBUG("called\n");
 

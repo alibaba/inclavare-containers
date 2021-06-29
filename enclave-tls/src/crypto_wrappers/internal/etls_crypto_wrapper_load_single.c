@@ -35,7 +35,7 @@ enclave_tls_err_t etls_crypto_wrapper_load_single(const char *fname)
 	char realpath[strlen(CRYPTO_WRAPPERS_DIR) + strlen(fname) + 1];
 	snprintf(realpath, sizeof(realpath), "%s%s",CRYPTO_WRAPPERS_DIR, fname);
 
-	size_t name_len = strlen(fname) - strlen(PATTERN_PREFIX) - strlen(PATTERN_SUFFIX);
+	uint32_t name_len = (uint32_t)strlen(fname) - (uint32_t)strlen(PATTERN_PREFIX) - (uint32_t)strlen(PATTERN_SUFFIX);
 	char name[name_len + 1];
 	strncpy(name, fname + strlen(PATTERN_PREFIX), name_len);
 	name[name_len] = '\0';
@@ -60,11 +60,10 @@ enclave_tls_err_t etls_crypto_wrapper_load_single(const char *fname)
 	}
 
 	if (opts->pre_init) {
-		enclave_tls_err_t err = opts->pre_init();
-
-		if (err != CRYPTO_WRAPPER_ERR_NONE) {
-			ETLS_ERR("failed on pre_init() of crypto wrapper '%s' %#x\n", name, err);
-			return err;
+		crypto_wrapper_err_t err_cw = opts->pre_init();
+		if (err_cw != CRYPTO_WRAPPER_ERR_NONE) {
+			ETLS_ERR("failed on pre_init() of crypto wrapper '%s' %#x\n", name, err_cw);
+			return -ENCLAVE_TLS_ERR_INVALID;
 		}
 	}
 

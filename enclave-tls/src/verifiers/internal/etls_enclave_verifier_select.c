@@ -13,10 +13,11 @@ static enclave_tls_err_t init_enclave_verifier(etls_core_context_t *ctx,
 					       enclave_verifier_ctx_t *verifier_ctx,
 					       enclave_tls_cert_algo_t algo)
 {
-	enclave_tls_err_t err = verifier_ctx->opts->init(verifier_ctx, algo);
+        ETLS_DEBUG("init enclave verifier etls_core_context: %#x\n", ctx);
 
+	enclave_verifier_err_t err = verifier_ctx->opts->init(verifier_ctx, algo);
 	if (err != ENCLAVE_VERIFIER_ERR_NONE)
-		return err;
+		return -ENCLAVE_TLS_ERR_INIT;
 
 	if (!verifier_ctx->verifier_private)
 		return -ENCLAVE_TLS_ERR_INIT;

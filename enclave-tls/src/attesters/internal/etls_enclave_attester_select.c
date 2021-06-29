@@ -13,10 +13,12 @@ static enclave_tls_err_t init_enclave_attester(etls_core_context_t *ctx,
 					       enclave_attester_ctx_t *attester_ctx,
 					       enclave_tls_cert_algo_t algo)
 {
-	enclave_tls_err_t err = attester_ctx->opts->init(attester_ctx, algo);
+        ETLS_DEBUG("init enclave attester etls_core_context: %#x\n", ctx);
+
+	enclave_attester_err_t err = attester_ctx->opts->init(attester_ctx, algo);
 
 	if (err != ENCLAVE_ATTESTER_ERR_NONE)
-		return err;
+		return -ENCLAVE_TLS_ERR_INIT;
 
 	if (!attester_ctx->attester_private)
 		return -ENCLAVE_TLS_ERR_INIT;

@@ -5,14 +5,17 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <dlfcn.h>
 #include <enclave-tls/err.h>
 #include <enclave-tls/log.h>
 #include "internal/core.h"
 #include "internal/attester.h"
 
-#define PATTERN_PREFIX "libattester_"
-#define PATTERN_SUFFIX ".so"
+#define PATTERN_PREFIX  "libattester_"
+#ifdef SGX
+#define PATTERN_SUFFIX  ".a"
+#else
+#define PATTERN_SUFFIX  ".so"
+#endif
 
 enclave_tls_err_t etls_enclave_attester_load_single(const char *fname)
 {
@@ -30,23 +33,22 @@ enclave_tls_err_t etls_enclave_attester_load_single(const char *fname)
 	}
 
 	char realpath[strlen(ENCLAVE_ATTESTERS_DIR) + strlen(fname) + 1];
-	sprintf(realpath, "%s%s", ENCLAVE_ATTESTERS_DIR, fname);
+        snprintf(realpath, sizeof(realpath), "%s%s", ENCLAVE_ATTESTERS_DIR, fname);
 
-	void *handle = dlopen(realpath, RTLD_LAZY);
-	if (!handle) {
-		ETLS_ERR("failed on dlopen(): %s\n", dlerror());
-		return -ENCLAVE_TLS_ERR_DLOPEN;
-	}
+        size_t name_len = strlen(fname) - strlen(PATTERN_PREFIX) - strlen(PATTERN_SUFFIX);
+        char name[name_len + 1];
+        strncpy(name, fname + strlen(PATTERN_PREFIX), name_len);
+        name[name_len] = '\0';
 
-	size_t name_len = strlen(fname) - strlen(PATTERN_PREFIX) - strlen(PATTERN_SUFFIX);
-	char name[name_len + 1];
-	strncpy(name, fname + strlen(PATTERN_PREFIX), name_len);
-	name[name_len] = '\0';
+        void *handle = NULL;
+        enclave_tls_err_t err = etls_instance_init(name, realpath, &handle);
+        if (err != ENCLAVE_TLS_ERR_NONE)
+                return err;
 
-	unsigned int i = 0;
-	enclave_attester_opts_t *opts = NULL;
-	for (; i < registerd_enclave_attester_nums; ++i) {
-		opts = enclave_attesters_opts[i];
+        unsigned int i = 0;
+        enclave_attester_opts_t *opts = NULL;
+        for (; i < registerd_enclave_attester_nums; ++i) {
+                opts = enclave_attesters_opts[i];
 
 		if (!strcmp(name, opts->name))
 			break;
@@ -58,11 +60,11 @@ enclave_tls_err_t etls_enclave_attester_load_single(const char *fname)
 	}
 
 	if (opts->pre_init) {
-		enclave_tls_err_t err = opts->pre_init();
+		enclave_attester_err_t err_ea = opts->pre_init();
 
-		if (err != ENCLAVE_ATTESTER_ERR_NONE) {
-			ETLS_ERR("failed on pre_init() of enclave attester '%s' %#x\n", name, err);
-			return err;
+		if (err_ea != ENCLAVE_ATTESTER_ERR_NONE) {
+			ETLS_ERR("failed on pre_init() of enclave attester '%s' %#x\n", name, err_ea);
+			return -ENCLAVE_TLS_ERR_INVALID;
 		}
 	}
 

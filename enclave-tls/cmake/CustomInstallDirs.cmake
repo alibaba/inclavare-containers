@@ -7,8 +7,11 @@ set(ENCLAVE_TLS_INSTALL_LIB_PATH "${ENCLAVE_TLS_INSTALL_PATH}/lib")
 # enclave_tls/lib/crypto-wrappers
 set(ENCLAVE_TLS_INSTALL_LIBCW_PATH "${ENCLAVE_TLS_INSTALL_PATH}/lib/crypto-wrappers")
 
-# enclave_tls/lib/enclave-quotes
-set(ENCLAVE_TLS_INSTALL_LIBEQ_PATH "${ENCLAVE_TLS_INSTALL_PATH}/lib/enclave-quotes")
+# enclave_tls/lib/attesters
+set(ENCLAVE_TLS_INSTALL_LIBA_PATH "${ENCLAVE_TLS_INSTALL_PATH}/lib/attesters")
+
+# enclave_tls/lib/verifiers
+set(ENCLAVE_TLS_INSTALL_LIBV_PATH "${ENCLAVE_TLS_INSTALL_PATH}/lib/verifiers")
 
 # enclave_tls/lib/tls-wrappers
 set(ENCLAVE_TLS_INSTALL_LIBTW_PATH "${ENCLAVE_TLS_INSTALL_PATH}/lib/tls-wrappers")

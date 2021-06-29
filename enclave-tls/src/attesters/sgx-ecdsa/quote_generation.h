@@ -7,6 +7,8 @@
 #define QUOTE_GENERATION_H_
 
 #include <stdint.h>
+#include <sys/fcntl.h>
+#include <sys/ioctl.h>
 #include <sgx_ql_quote.h>
 
 /** @struct sgxioc_gen_dcap_quote_arg_t

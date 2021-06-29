@@ -11,7 +11,7 @@
 
 static enclave_tls_err_t init_tls_wrapper(tls_wrapper_ctx_t *tls_ctx)
 {
-	enclave_tls_err_t err = tls_ctx->opts->init(tls_ctx);
+	tls_wrapper_err_t err = tls_ctx->opts->init(tls_ctx);
 
 	if (err != TLS_WRAPPER_ERR_NONE)
 		return err;

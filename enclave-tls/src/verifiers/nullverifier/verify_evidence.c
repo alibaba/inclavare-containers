@@ -8,8 +8,9 @@
 
 enclave_verifier_err_t nullverifier_verify_evidence(enclave_verifier_ctx_t *ctx,
 						    attestation_evidence_t *evidence, uint8_t *hash,
-						    unsigned int hash_len)
+						    uint32_t hash_len)
 {
+        (void)hash_len;
 	ETLS_DEBUG("ctx %p, evidence %p, hash %p\n", ctx, evidence, hash);
 
 	return ENCLAVE_VERIFIER_ERR_NONE;

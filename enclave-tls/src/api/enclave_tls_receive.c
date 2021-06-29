@@ -18,10 +18,11 @@ enclave_tls_err_t enclave_tls_receive(enclave_tls_handle handle, void *buf, size
 	    !handle->tls_wrapper->opts->receive || !buf || !buf_size)
 		return -ENCLAVE_TLS_ERR_INVALID;
 
-	enclave_tls_err_t err;
-	err = handle->tls_wrapper->opts->receive(handle->tls_wrapper, buf, buf_size);
-	if (err != TLS_WRAPPER_ERR_NONE)
-		return err;
+	tls_wrapper_err_t err = handle->tls_wrapper->opts->receive(handle->tls_wrapper, buf, buf_size);
+	if (err != TLS_WRAPPER_ERR_NONE) {
+                ETLS_ERR("failed to receive data from tls wrapper %s\n", handle->tls_wrapper->opts->name);
+		return -ENCLAVE_TLS_ERR_INVALID;
+        }
 
 	return ENCLAVE_TLS_ERR_NONE;
 }

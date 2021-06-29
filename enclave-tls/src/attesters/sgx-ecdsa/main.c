@@ -31,7 +31,11 @@ static enclave_attester_opts_t sgx_ecdsa_attester_opts = {
 	.cleanup = sgx_ecdsa_attester_cleanup,
 };
 
+#ifdef SGX
+void libattester_sgx_ecdsa_init(void)
+#else
 void __attribute__((constructor)) libattester_sgx_ecdsa_init(void)
+#endif
 {
 	ETLS_DEBUG("called\n");
 

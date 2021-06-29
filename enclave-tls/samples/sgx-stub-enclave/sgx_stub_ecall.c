@@ -217,7 +217,7 @@ int ecall_etls_client_startup(sgx_enclave_id_t enclave_id,
 		return -1;
 	}
 	
-	ret = enclave_tls_negotiate(handle, sockfd);
+	ret = enclave_tls_negotiate(handle, (int)sockfd);
 	if (ret != ENCLAVE_TLS_ERR_NONE) {
 		ETLS_ERR("Failed to negotiate %#x\n", ret);
 		goto err;
