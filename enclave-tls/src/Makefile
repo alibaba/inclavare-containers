@@ -44,7 +44,7 @@ libenclave_tls_files := \
     $(this_dir)/tls_wrappers/internal/*.c $(this_dir)/tls_wrappers/api/*.c \
     $(this_dir)/attesters/internal/*.c $(this_dir)/attesters/api/*.c \
     $(this_dir)/verifiers/internal/*.c $(this_dir)/verifiers/api/*.c \
-    $(this_dir)/util/*.c \
+    $(this_dir)/util/sgxutils.c \
   )
 
 ocall_files := \
@@ -57,7 +57,7 @@ ifdef SGX
   libenclave_tls_files += $(ocall_files)
 endif
 
-libenclave_tls_objs := $(libenclave_tls_files:.c=.o)
+libenclave_tls_objs := $(libenclave_tls_files:.c=.o) util/toml.o
 $(Build_Libdir)/$(libenclave_tls): $(Build_Dependencies) $(libenclave_tls_objs)
 	@$(INSTALL) -d -m 0755 $(dir $@)
 	$(LD) $(Enclave_Tls_Ldflags) -soname=$(notdir $@).$(Major_Version) -o $@ $(libenclave_tls_objs) -ldl -lc $(Enclave_Tls_Extra_Ldflags)
@@ -76,6 +76,26 @@ $(addprefix $(Build_Libdir)/,$(attesters) $(verifiers)):
 	dir=`echo $$n | cut -d '_' -f1`; \
 	name=$${n#$${dir}_}; \
 	make -C $(this_dir)/$${dir}s/$$name
+
+util/toml.o: util/toml.c util/toml.h
+	$(CC) -fPIC -o $@ -c $<
+
+toml_h_uri ?= \
+	https://raw.githubusercontent.com/cktan/tomlc99/master/toml.h
+
+toml_c_uri ?= \
+	https://raw.githubusercontent.com/cktan/tomlc99/master/toml.c
+
+util/toml.c:
+	if [ ! -e "util/toml.c" ]; then \
+		wget $(toml_c_uri) -P util/; \
+	fi
+
+util/toml.h:
+	if [ ! -e "util/toml.h" ]; then \
+		wget $(toml_h_uri) -P util/; \
+		cp util/toml.h ./include/enclave-tls/; \
+	fi
 
 install_libenclave_tls: $(Build_Libdir)/$(libenclave_tls)
 	$(INSTALL) -d -m 0755 $(Enclave_Tls_Libdir)
@@ -105,7 +125,7 @@ install: all
 uninstall:
 	@rm -rf $(Enclave_Tls_Root)
 
-Cleans += $(Build_Libdir) $(libenclave_tls_objs) $(ocall_objs) 
+Cleans += $(Build_Libdir) $(libenclave_tls_objs) $(ocall_objs)
 Clean_Dirs += crypto_wrappers tls_wrappers attesters verifiers
 
 Extra_Phonies += install_libenclave_tls

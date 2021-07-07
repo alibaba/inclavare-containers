@@ -11,8 +11,96 @@
 #include <enclave-tls/err.h>
 #include <enclave-tls/tls_wrapper.h>
 #include <enclave-tls/oid.h>
+#include <internal/core.h>
 #include "per_thread.h"
 #include "openssl.h"
+#include "sgx_report.h"
+#include "sgx_quote_3.h"
+
+#ifdef SGX
+tls_wrapper_err_t enclave_verify_mrenclave(tls_wrapper_ctx_t *tls_ctx,
+					   attestation_evidence_t *evidence)
+{
+	uint8_t mrenclave[32];
+	sgx_quote3_t quote3;
+
+	memset(mrenclave, 0, sizeof(mrenclave));
+	memset(&quote3, 0, sizeof(quote3));
+
+	memcpy(&quote3, evidence->ecdsa.quote, sizeof(quote3));
+
+	if (!strcmp(evidence->type, "sgx_ecdsa")) {
+		memcpy(mrenclave, quote3.report_body.mr_enclave.m, sizeof(mrenclave));
+		if (memcmp(tls_ctx->etls_handle->config.enclave_info.mrenclave, mrenclave,
+			   sizeof(mrenclave)))
+			return -TLS_WRAPPER_ERR_INVALID;
+	} else if (!strcmp(evidence->type, "sgx_ecdsa_qve")) {
+		memcpy(mrenclave, quote3.report_body.mr_enclave.m, sizeof(mrenclave));
+		if (memcmp(tls_ctx->etls_handle->config.enclave_info.mrenclave, mrenclave,
+			   sizeof(mrenclave)))
+			return -TLS_WRAPPER_ERR_INVALID;
+	} else if (!strcmp(evidence->type, "sgx_la")) {
+		sgx_report_t *lareport = (sgx_report_t *)(evidence->la.report);
+		memcpy(mrenclave, lareport->body.mr_enclave.m, sizeof(mrenclave));
+		if (memcmp(tls_ctx->etls_handle->config.enclave_info.mrenclave, mrenclave,
+			   sizeof(mrenclave)))
+			return -TLS_WRAPPER_ERR_INVALID;
+	}
+
+	return TLS_WRAPPER_ERR_NONE;
+}
+
+tls_wrapper_err_t enclave_verify_mrsigner(tls_wrapper_ctx_t *tls_ctx,
+					  attestation_evidence_t *evidence)
+{
+	uint8_t mrsigner[32];
+	sgx_quote3_t quote3;
+
+	memset(mrsigner, 0, sizeof(mrsigner));
+	memset(&quote3, 0, sizeof(quote3));
+
+	memcpy(&quote3, evidence->ecdsa.quote, sizeof(quote3));
+
+	if (!strcmp(evidence->type, "sgx_ecdsa")) {
+		memcpy(mrsigner, quote3.report_body.mr_signer.m, sizeof(mrsigner));
+		if (memcmp(tls_ctx->etls_handle->config.enclave_info.mrsigner, mrsigner,
+			   sizeof(mrsigner)))
+			return -TLS_WRAPPER_ERR_INVALID;
+	} else if (!strcmp(evidence->type, "sgx_ecdsa_qve")) {
+		memcpy(mrsigner, quote3.report_body.mr_signer.m, sizeof(mrsigner));
+		if (memcmp(tls_ctx->etls_handle->config.enclave_info.mrsigner, mrsigner,
+			   sizeof(mrsigner)))
+			return -TLS_WRAPPER_ERR_INVALID;
+	} else if (!strcmp(evidence->type, "sgx_la")) {
+		sgx_report_t *lareport = (sgx_report_t *)evidence->la.report;
+		memcpy(mrsigner, lareport->body.mr_signer.m, sizeof(mrsigner));
+		if (memcmp(tls_ctx->etls_handle->config.enclave_info.mrsigner, mrsigner,
+			   sizeof(mrsigner)))
+			return -TLS_WRAPPER_ERR_INVALID;
+	}
+
+	return TLS_WRAPPER_ERR_NONE;
+}
+
+tls_wrapper_err_t enclave_user_callback(tls_wrapper_ctx_t *tls_ctx,
+					attestation_evidence_t *evidence)
+{
+	tls_wrapper_err_t ret;
+	ret = enclave_verify_mrenclave(tls_ctx, evidence);
+	if (ret != TLS_WRAPPER_ERR_NONE) {
+		ETLS_ERR("mrenclave does not match\n");
+		return ret;
+	}
+
+	ret = enclave_verify_mrsigner(tls_ctx, evidence);
+	if (ret != TLS_WRAPPER_ERR_NONE) {
+		ETLS_ERR("mrsigner does not match\n");
+		return ret;
+	}
+
+	return TLS_WRAPPER_ERR_NONE;
+}
+#endif
 
 static int etls_memcpy_s(void *dst, uint32_t dst_size, const void *src, uint32_t num_bytes)
 {
@@ -301,5 +389,12 @@ int verify_certificate(int preverify, X509_STORE_CTX *ctx)
 		return 0;
 	}
 
+#ifdef SGX
+	err = enclave_user_callback(tls_ctx, &evidence);
+	if (err != TLS_WRAPPER_ERR_NONE) {
+		ETLS_ERR("failed to verify user enclave info\n");
+		return 0;
+	}
+#endif
 	return SSL_SUCCESS;
 }
