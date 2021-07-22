@@ -55,6 +55,10 @@ Right now, Enclave TLS supports the following instance types:
 
 By default,  Enclave TLS will select the **highest priority** instance to use.
 
+The following instances matrix will introduce possible combinations between each instances.
+
+![instances matrix](./docs/image/instances_matrix.PNG)
+
 ## Run enclave tls server
 ```
 cd /usr/share/enclave-tls/samples
