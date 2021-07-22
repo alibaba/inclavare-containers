@@ -5,19 +5,23 @@
  */
 
 #include <stdlib.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <enclave-tls/api.h>
 #include <enclave-tls/log.h>
+#include <enclave-tls/toml.h>
 
-#define DEFAULT_PORT 1234
-#define DEFAULT_IP   "127.0.0.1"
+#define DEFAULT_PORT	    1234
+#define DEFAULT_IP	    "127.0.0.1"
+#define ENCLAVE_CONFIG_TOML "/opt/enclave-tls/config.toml"
 
 // clang-format off
 #ifdef OCCLUM
@@ -26,7 +30,7 @@
   #include <sgx_urts.h>
   #include <sgx_quote.h>
 
-  #define ENCLAVE_FILENAME "sgx_stub_enclave.signed.so"
+#define ENCLAVE_FILENAME        "sgx_stub_enclave.signed.so"
 
 static sgx_enclave_id_t load_enclave(bool debug_enclave)
 {
@@ -49,6 +53,78 @@ static sgx_enclave_id_t load_enclave(bool debug_enclave)
 #endif
 // clang-format on
 
+static uint8_t user_mrsigner[32];
+static uint8_t user_mrenclave[32];
+
+static int parse_hex(const char *hex, void *buffer, size_t buffer_size)
+{
+	if (!hex || !buffer || buffer_size == 0)
+		return -1;
+
+	if (strlen(hex) != buffer_size * 2) {
+		ETLS_ERR("Invalid hex string (%s) length\n", hex);
+		return -1;
+	}
+
+	for (size_t i = 0; i < buffer_size; i++) {
+		if (!isxdigit(hex[i * 2]) || !isxdigit(hex[i * 2 + 1])) {
+			ETLS_ERR("Invalid hex string '%s'\n", hex);
+			return -1;
+		}
+
+		sscanf(hex + i * 2, "%02hhx", &((uint8_t *)buffer)[i]);
+	}
+
+	return 0;
+}
+
+static int parse_config_file(char *path)
+{
+	FILE *fp;
+	char errbuf[200];
+
+	fp = fopen(path, "r");
+	if (!fp) {
+		ETLS_ERR("failed to open /opt/enclave-tls/config.toml\n");
+		goto err;
+	}
+
+	toml_table_t *conf = toml_parse_file(fp, errbuf, sizeof(errbuf));
+	fclose(fp);
+
+	if (!conf) {
+		ETLS_ERR("failed to parse %s\n", errbuf);
+		goto err;
+	}
+	toml_table_t *enclave_info = toml_table_in(conf, "enclave-info");
+	if (!enclave_info) {
+		ETLS_DEBUG("there is no enclave-info data\n");
+		return 0;
+	}
+
+	toml_datum_t mrsigner = toml_string_in(enclave_info, "mrsigner");
+	if (mrsigner.ok) {
+		if (parse_hex(mrsigner.u.s, user_mrsigner, sizeof(user_mrsigner)))
+			return -1;
+	} else
+		ETLS_DEBUG("there is no mrsigner\n");
+
+	toml_datum_t mrenclave = toml_string_in(enclave_info, "mrenclave");
+	if (mrenclave.ok) {
+		if (parse_hex(mrenclave.u.s, user_mrenclave, sizeof(user_mrenclave)))
+			return -1;
+	} else
+		ETLS_DEBUG("there is no mrenclave\n");
+
+	free(mrsigner.u.s);
+	free(mrenclave.u.s);
+	toml_free(conf);
+
+	return 0;
+err:
+	return -1;
+}
+
 int enclave_tls_echo(int fd, enclave_tls_log_level_t log_level, char *attester_type,
 		     char *verifier_type, char *tls_type, char *crypto_type, bool mutual,
 		     bool debug_enclave)
@@ -70,6 +146,11 @@ int enclave_tls_echo(int fd, enclave_tls_log_level_t log_level, char *attester_t
 #endif
 	if (mutual)
 		conf.flags |= ENCLAVE_TLS_CONF_FLAGS_MUTUAL;
+
+	if (!parse_config_file(ENCLAVE_CONFIG_TOML)) {
+		memcpy(conf.enclave_info.mrsigner, user_mrsigner, sizeof(user_mrsigner));
+		memcpy(conf.enclave_info.mrenclave, user_mrenclave, sizeof(user_mrenclave));
+	}
 
 	enclave_tls_handle handle;
 	enclave_tls_err_t ret = enclave_tls_init(&conf, &handle);
